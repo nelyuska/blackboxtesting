@@ -1,0 +1,14 @@
+{
+  "employees": [
+    { "id":  1, "name": "Nely Vazquez",   "hireDate": "2016/08/22"},
+    { "id":  2, "name": "Alex Loayza",    "hireDate": "2016/08/22"},
+    { "id":  3, "name": "Sara Pargari",   "hireDate": "2014/10/13"},
+    { "id":  4, "name": "Belinda Romano", "hireDate": "2012/04/02"},
+    { "id":  5, "name": "Alfredo Zellek", "hireDate": "2016/08/08"},
+    { "id":  6, "name": "Justin Philips", "hireDate": "2015/03/23"},
+    { "id":  7, "name": "Keith Briggs",   "hireDate": "2016/09/26"},
+    { "id":  8, "name": "Sara Tan",       "hireDate": "2016/04/18"},
+    { "id":  9, "name": "Rene Travieso",  "hireDate": "2016/07/11"},
+    { "id": 10, "name": "Don Burgess",    "hireDate": "2016/09/29"}
+  ]
+}
