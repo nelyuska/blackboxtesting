@@ -1,8 +1,9 @@
 {
   "blackout": [
-    "2016/01/01",
-    "2016/09/01",
-    "2017/01/01",
-    "2017/09/01"
+    { "date": "2016/01/01", "name": "New Year" },
+    { "date": "2016/09/01", "name": "Labor Day" },
+    { "date": "2016/11/01", "name": "Hurricane Tyler" },
+    { "date": "2017/01/01", "name": "New Year" },
+    { "date": "2017/09/01", "name": "Labor Day" }
   ]
 }

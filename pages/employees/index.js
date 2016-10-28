@@ -45,8 +45,8 @@ class EmployeesPage extends React.Component {
   handleAskButtonClick() {
     // save calculated value: has performance review
     const answer = this.askOracle();
-    this.setState({ hasPerformanceReview: answer.value });
-    this.setState({ explanation: answer.reasons });
+    this.setState({ hasPerformanceReview: answer !== null ? answer.value : null });
+    this.setState({ explanation: answer !== null ? answer.reasons : null });
   }
 
   askOracle() {
@@ -54,22 +54,33 @@ class EmployeesPage extends React.Component {
     const { employeeId, date } = this.state;
     if (employeeId === "" || date === null) return null;
 
-    const employee = eData.employees.find(x => x.id == employeeId);
+    const employee = this.findEmployee(employeeId);
 
-    let reasons = [];
+    const reasons = [];
     if (!this.hiredBefore(employee, date)) {
-      reasons.push("The employee wasn't hired at that time. His reviews begin after " + employee.hireDate + ".");
+      reasons.push("The employee wasn't hired at that time. His reviews start after " + employee.hireDate + ".");
+    }
+    else if (!this.hiredForAMonth(employee, date)) {
+      reasons.push("The employee was too new at that time. He needs to work at least a month before the initial review.");
     }
     if (!this.isOddMonth(date)) {
-      reasons.push("Reviews only happen every other month: Jan, Mar, May, July, Sept, Nov.");
+      const monthName = this.getMonthName(date);
+      reasons.push("Reviews don't happen on even months like " + monthName + ". Try selecting an odd month such as: Jan, Mar, May, July, Sept, Nov.");
     }
     if (!this.isFirstBusinessDayOfMonth(date)) {
-      reasons.push("Reviews only happen on the first business day of the applicable months, never on weekends or special days such as holidays.");
+      const blackout = this.findBlackout(date);
+      const blackoutRemark = blackout ? " Special days such as <" + blackout.name + "> are excluded." : "";
+      reasons.push("Reviews only happen on the first business day of the applicable months." + blackoutRemark);
     }
     return {
       value: !reasons.length,
       reasons: reasons
     };
+  }
+
+  findEmployee(id) {
+    // get employee with id
+    return eData.employees.find(x => x.id == id);
   }
 
   hiredBefore(employee, date) {
@@ -78,23 +89,37 @@ class EmployeesPage extends React.Component {
     return hireDate < date;
   }
 
+  hiredForAMonth(employee, date) {
+    // true if the employee has been hired for over 30 days
+    const hireDate = new Date(employee.hireDate);
+    const diff = date - hireDate;
+    const oneDay = 1000*60*60*24;
+    return diff >= ( 30 * oneDay );
+  }
+
   isOddMonth(date) {
     // true for odd months: 1, 3, 5, 7, 9, 11; false otherwise
     const month = date.getMonth() + 1;
     return month % 2 !== 0;
   }
 
+  getMonthName(date) {
+    // month name
+    return date.toString().split(" ")[1];
+  }
+
   isFirstBusinessDayOfMonth(date) {
     // true if the specified date matches the first biz day of the month
     const firstBizDay = this.getFirstBusinessDayOfMonth(date);
-    return date.toDateString() == firstBizDay.toDateString();
+    return date.toDateString() === firstBizDay.toDateString();
   }
 
   getFirstBusinessDayOfMonth(date) {
     // get first business day of month that is not a blackout date, e.g. holiday
     const firstBizDay = new Date(date.getFullYear(), date.getMonth(), 1);
-    while (!this.isBusinessDay(firstBizDay) || this.isBlackout(firstBizDay))
+    while (!this.isBusinessDay(firstBizDay) || this.isBlackout(firstBizDay)) {
       firstBizDay.setDate(firstBizDay.getDate() + 1);
+    }
     return firstBizDay;
   }
 
@@ -106,7 +131,12 @@ class EmployeesPage extends React.Component {
 
   isBlackout(date) {
     // true if a least one blackout date matches the specified date
-    return bData.blackout.some(x => new Date(x).toDateString() == date.toDateString());
+    return bData.blackout.some(x => new Date(x.date).toDateString() === date.toDateString());
+  }
+
+  findBlackout(date) {
+    // get blackout day
+    return bData.blackout.find(x => new Date(x.date).toDateString() === date.toDateString());
   }
 
   render() {
@@ -141,10 +171,10 @@ class EmployeesPage extends React.Component {
         &nbsp;&nbsp;&nbsp;&nbsp;
 
         <Button onClick={() => this.handleAskButtonClick()} primary>Ask</Button>
-        <p>
+        <div>
           <br/>
           {this.renderHasPerformanceReview()}
-        </p>
+        </div>
         <p>
           <br /><br />
         </p>
@@ -157,7 +187,7 @@ class EmployeesPage extends React.Component {
       if (this.state.hasPerformanceReview) return (<span><i>Has performance review</i></span>);
       return (
         <span>
-          <i>Does not have performance review</i><br/>
+          <i>Does not have performance review. Here is why:</i><br/>
           <ul>
           {this.state.explanation.map((reason, i) =>
             <li key={i}>
